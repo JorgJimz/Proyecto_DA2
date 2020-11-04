@@ -19,47 +19,38 @@ import javax.swing.JMenuItem;
  *
  * @author usuario
  */
-public class Principal extends JFrame{
+public class Principal extends JFrame {
 
-    /**
-     * @param args the command line arguments
-     */
-    
     public JMenuBar menuBarPrincipal;
-    
+
     public JMenu menuAlmacen;
     public JMenu menuCompras;
-    
+
     public JMenuItem genPedido;
     public JMenuItem recPedido;
-    
+
     public JDesktopPane contenedor;
-    
+
     public Principal() throws HeadlessException {
         this.setVisible(true);
-        this.setSize(100,100);
-        this.setResizable(false);
         this.setExtendedState(JFrame.MAXIMIZED_BOTH);
-        this.setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
-        
+
         contenedor = new JDesktopPane();
-        
-        getContentPane().add(contenedor, BorderLayout.CENTER);
-        
+
         menuBarPrincipal = new JMenuBar();
         menuAlmacen = new JMenu("Almacen");
         menuCompras = new JMenu("Compras");
-        
+
         genPedido = new JMenuItem("Generar Pedido");
         menuAlmacen.add(genPedido);
         genPedido.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent ae) {
-               Generar_Pedido ui_gen_ped = new Generar_Pedido();
-               contenedor.add(ui_gen_ped);
+                Generar_Pedido ui_gen_ped = new Generar_Pedido();
+                contenedor.add(ui_gen_ped);
             }
         });
-        
+
         recPedido = new JMenuItem("Recibir Pedido");
         menuAlmacen.add(recPedido);
         recPedido.addActionListener(new ActionListener() {
@@ -69,16 +60,18 @@ public class Principal extends JFrame{
                 contenedor.add(ui_rec_ped);
             }
         });
-        
+
         menuBarPrincipal.add(menuCompras);
         menuBarPrincipal.add(menuAlmacen);
-        
+
         this.setJMenuBar(menuBarPrincipal);
+
+        getContentPane().add(contenedor, BorderLayout.CENTER);
     }
 
     public static void main(String[] args) {
         // TODO code application logic here
         new Principal();
     }
-    
+
 }
