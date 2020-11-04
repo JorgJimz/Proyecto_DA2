@@ -11,6 +11,9 @@ import javax.swing.JInternalFrame;
  *
  * @author usuario
  */
+
+/// comentario 1 Ruben
+
 public class Generar_Pedido extends JInternalFrame{
 
     public Generar_Pedido() {
