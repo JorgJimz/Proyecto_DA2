@@ -1,9 +1,11 @@
 package UI;
 
+import MODEL.Producto;
 import UTIL.dbBean;
 import java.sql.ResultSet;
 import javax.swing.JInternalFrame;
 import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
 
 public class Generar_Pedido extends JInternalFrame {
 
@@ -11,18 +13,21 @@ public class Generar_Pedido extends JInternalFrame {
     private JTable tbProducto;
     private JLabel jLabel1;
     private JTextField txtBuscador;
+    DefaultTableModel modelo = new DefaultTableModel(null, new String[]{"ID","DESCRIPCION","PRECIO","UNIDAD DE MEDIDA","STOCK ACTUAL"});
 
     public Generar_Pedido() {
         this.setVisible(true);
         this.setSize(1500, 1500);
         this.setClosable(true);
         this.setTitle("Generar Pedido");
-
+        
+        
         spTabla = new JScrollPane();
         getContentPane().add(spTabla);
         spTabla.setBounds(12, 75, 529, 162);
         tbProducto = new JTable();
         spTabla.setViewportView(tbProducto);
+        tbProducto.setModel(modelo);
         txtBuscador = new JTextField();
         getContentPane().add(txtBuscador);
         txtBuscador.setBounds(12, 40, 527, 23);
@@ -30,7 +35,7 @@ public class Generar_Pedido extends JInternalFrame {
         getContentPane().add(jLabel1);
         jLabel1.setText("Producto");
         jLabel1.setBounds(12, 12, 49, 16);
-        
+
         CargarProductos();
 
     }
@@ -38,9 +43,15 @@ public class Generar_Pedido extends JInternalFrame {
     public void CargarProductos() {
         try {
             dbBean cnn = new dbBean();
+
+            ResultSet rs = cnn.execSQL("SELECT * FROM PRODUCTO");
             
+            while(rs.next()){              
+                
+                modelo.addRow(new Object[]{rs.getInt("ID"), rs.getString("DESCRIPCION"),rs.getDouble("PRECIO"),rs.getString("UNIDAD_MEDIDA"),rs.getInt("STOCK_ACTUAL")});
+   
+            }
             
-            ResultSet response = cnn.execSQL("SELECT * FROM PRODUCTO");
         } catch (Exception e) {
             e.printStackTrace();
         }
