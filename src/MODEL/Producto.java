@@ -49,6 +49,7 @@ public class Producto {
         return UNIDAD_MEDIDA;
     }
 
+    // procedimientoe
     public void setUNIDAD_MEDIDA(String UNIDAD_MEDIDA) {
         this.UNIDAD_MEDIDA = UNIDAD_MEDIDA;
     }
@@ -57,6 +58,7 @@ public class Producto {
         return STOCK_ACTUAL;
     }
 
+    //procedimiento
     public void setSTOCK_ACTUAL(int STOCK_ACTUAL) {
         this.STOCK_ACTUAL = STOCK_ACTUAL;
     }
@@ -65,6 +67,7 @@ public class Producto {
         return STOCK_MINIMO;
     }
 
+    //procedimiento
     public void setSTOCK_MINIMO(int STOCK_MINIMO) {
         this.STOCK_MINIMO = STOCK_MINIMO;
     }

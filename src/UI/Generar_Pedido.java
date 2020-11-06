@@ -8,13 +8,17 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 
 public class Generar_Pedido extends JInternalFrame {
-
+    
+ 
+// la primer tabla
     private JScrollPane spTabla;
     private JTable tbProducto;
     private JLabel jLabel1;
     private JTextField txtBuscador;
     DefaultTableModel modelo = new DefaultTableModel(null, new String[]{"ID","DESCRIPCION","PRECIO","UNIDAD DE MEDIDA","STOCK ACTUAL"});
 
+  
+    
     public Generar_Pedido() {
         this.setVisible(true);
         this.setSize(1500, 1500);
@@ -28,17 +32,18 @@ public class Generar_Pedido extends JInternalFrame {
         tbProducto = new JTable();
         spTabla.setViewportView(tbProducto);
         tbProducto.setModel(modelo);
-        txtBuscador = new JTextField();
+        txtBuscador = new JTextField(); // buscador
         getContentPane().add(txtBuscador);
         txtBuscador.setBounds(12, 40, 527, 23);
-        jLabel1 = new JLabel();
+        jLabel1 = new JLabel(); // etiqueta
         getContentPane().add(jLabel1);
-        jLabel1.setText("Producto");
+        jLabel1.setText("Producto"); // etiqueta
         jLabel1.setBounds(12, 12, 49, 16);
 
         CargarProductos();
-
     }
+   
+    
 
     public void CargarProductos() {
         try {
@@ -57,4 +62,33 @@ public class Generar_Pedido extends JInternalFrame {
         }
     }
 
+    
+      // 2da tabla detalle
+    private JTable tbDetalle;
+     // fin
+    
+    
+         
+        /// 2da tabla detalle pedido
+       public void detalle_Pedido(){
+               
+        this.setVisible(true);
+        this.setSize(1500, 1500);
+        this.setLayout(null);
+        this.setClosable(true);
+        this.setTitle("Detalle Pedido");
+        
+        tbDetalle = new JTable();
+        getContentPane().add(tbDetalle);
+        
+        spTabla = new JScrollPane();
+        getContentPane().add(spTabla);
+        spTabla.setBounds(214, 48, 923, 583);
+        
+        tbDetalle = new JTable();
+        spTabla.setViewportView(tbDetalle);
+        tbDetalle.setModel(modelo);
+       }
+    
+    // fin 2da tabla 
 }
