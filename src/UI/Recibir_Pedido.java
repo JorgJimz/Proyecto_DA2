@@ -18,7 +18,7 @@ public class Recibir_Pedido extends JInternalFrame{
         this.setSize(150,150);
         this.setClosable(true);
         this.setTitle("Recibir Pedido");
-        this.setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
+       // this.setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
     }
     
     

@@ -17,7 +17,12 @@ public class Generar_Pedido extends JInternalFrame {
     private JTextField txtBuscador;
     DefaultTableModel modelo = new DefaultTableModel(null, new String[]{"ID","DESCRIPCION","PRECIO","UNIDAD DE MEDIDA","STOCK ACTUAL"});
 
-  
+    // 2da tabla
+    private JScrollPane spProducto;
+    private JTable tbProducto2;
+    
+    DefaultTableModel modelo2 = new DefaultTableModel(null, new String[]{"ID","DESCRIPCION","PRECIO","CANTIDAD","IMPORTE"});
+    //
     
     public Generar_Pedido() {
         this.setVisible(true);
@@ -25,12 +30,24 @@ public class Generar_Pedido extends JInternalFrame {
         this.setClosable(true);
         this.setTitle("Generar Pedido");
         
+        //
+         this.setVisible(true);
+        this.setSize(1500, 1500);
+        this.setLayout(null);
+        this.setClosable(true);
+        this.setTitle("Detalle Pedido");
+        
+          tbDetalle = new JTable();
+        getContentPane().add(tbDetalle);
+        //
         
         spTabla = new JScrollPane();
         getContentPane().add(spTabla);
         spTabla.setBounds(12, 75, 529, 162);
+        
         tbProducto = new JTable();
         spTabla.setViewportView(tbProducto);
+        
         tbProducto.setModel(modelo);
         txtBuscador = new JTextField(); // buscador
         getContentPane().add(txtBuscador);
@@ -39,8 +56,22 @@ public class Generar_Pedido extends JInternalFrame {
         getContentPane().add(jLabel1);
         jLabel1.setText("Producto"); // etiqueta
         jLabel1.setBounds(12, 12, 49, 16);
+        
+        // 2da tabla
+        spProducto = new JScrollPane();
+        getContentPane().add(spProducto);
+        spProducto.setBounds(771, 56, 657, 371);
+        
+        
+        tbProducto2 = new JTable();
+        spProducto.setViewportView(tbProducto2);
+        tbProducto2.setModel(modelo2);      
+        //
+        
 
         CargarProductos();
+              
+        
     }
    
     
@@ -70,8 +101,7 @@ public class Generar_Pedido extends JInternalFrame {
     
          
         /// 2da tabla detalle pedido
-       public void detalle_Pedido(){
-               
+                    /*
         this.setVisible(true);
         this.setSize(1500, 1500);
         this.setLayout(null);
@@ -88,7 +118,7 @@ public class Generar_Pedido extends JInternalFrame {
         tbDetalle = new JTable();
         spTabla.setViewportView(tbDetalle);
         tbDetalle.setModel(modelo);
-       }
+
     
-    // fin 2da tabla 
+    // fin 2da tabla */
 }
