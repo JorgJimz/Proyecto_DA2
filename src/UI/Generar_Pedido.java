@@ -40,7 +40,11 @@ public class Generar_Pedido extends JInternalFrame {
             dbBean cnn = new dbBean();
             
             
-            ResultSet response = cnn.execSQL("SELECT * FROM PRODUCTO");
+            ResultSet rs = cnn.execSQL("SELECT * FROM PRODUCTO");
+            while(rs.next()){
+                System.out.println(rs.getInt("ID"));
+            }
+            
         } catch (Exception e) {
             e.printStackTrace();
         }
