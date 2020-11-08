@@ -24,6 +24,10 @@ public class Generar_Pedido extends JInternalFrame {
     DefaultTableModel modelo2 = new DefaultTableModel(null, new String[]{"ID","DESCRIPCION","PRECIO","CANTIDAD","IMPORTE"});
     //
     
+    //
+    private JButton btGenerar;
+    //
+    
     public Generar_Pedido() {
         this.setVisible(true);
         this.setSize(1500, 1500);
@@ -66,6 +70,13 @@ public class Generar_Pedido extends JInternalFrame {
         tbProducto2 = new JTable();
         spProducto.setViewportView(tbProducto2);
         tbProducto2.setModel(modelo2);      
+        //
+        
+        //
+        btGenerar = new JButton();
+        getContentPane().add(btGenerar);
+        btGenerar.setText("Generar");
+        btGenerar.setBounds(1151, 537, 141, 55);
         //
         
 
