@@ -3,11 +3,11 @@ package UTIL;
 import java.sql.*;
 
 public class dbBean {
-    String dbURL = "jdbc:sqlserver://localhost:1433;databaseName=DB_DELICIAS;integratedSecurity=true";    
+    String dbURL = "jdbc:sqlserver://DESKTOP-DM870V1;databaseName=DB_DELICIAS";    
     String dbDriver = "com.microsoft.sqlserver.jdbc.SQLServerDriver";
     private Connection dbCon;
-    private String login = "";
-    private String password = "";
+    private String login = "sa";
+    private String password = "123456789";
 
     public dbBean() {
         connect();
@@ -21,7 +21,7 @@ public class dbBean {
             return false;
         }
         try {
-            dbCon = DriverManager.getConnection(this.dbURL);
+            dbCon = DriverManager.getConnection(this.dbURL, this.login, this.password);
         } catch (SQLException ex) {
             System.out.println(ex);
             return false;
