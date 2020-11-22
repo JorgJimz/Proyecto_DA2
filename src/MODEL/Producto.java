@@ -1,14 +1,5 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package MODEL;
 
-/**
- *
- * @author ruben
- */
 public class Producto {
 
     private int ID;
@@ -19,6 +10,12 @@ public class Producto {
     private int STOCK_MINIMO;
 
     public Producto() {
+    }
+
+    public Producto(int ID, String DESCRIPCION, double PRECIO) {
+        this.ID = ID;
+        this.DESCRIPCION = DESCRIPCION;
+        this.PRECIO = PRECIO;
     }
 
     public int getID() {
@@ -71,7 +68,5 @@ public class Producto {
     public void setSTOCK_MINIMO(int STOCK_MINIMO) {
         this.STOCK_MINIMO = STOCK_MINIMO;
     }
-    
-    
 
 }
