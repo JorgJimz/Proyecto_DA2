@@ -52,7 +52,7 @@ public class PedidoController implements IPedido {
         try {
             dbBean cnn = new dbBean();
             int r2 = 0;
-            int r = cnn.insertSQL("INSERT INTO ORDEN VALUES (GETDATE(), 1, NULL)", null);
+            int r = cnn.insertSQL("INSERT INTO ORDEN VALUES (GETDATE(), 1, NULL, NULL)", null);
             if (r > 0) {
                 for (Detalle_Orden item : arrDetalle) {
                     r2 = cnn.insertSQL("INSERT INTO DETALLE_ORDEN VALUES (?,?,?)", new Object[]{r, item.getPRODUCTO_ID(), item.getCANTIDAD()});
@@ -130,7 +130,7 @@ public class PedidoController implements IPedido {
             dbBean cnn = new dbBean();
             int r = cnn.insertSQL("UPDATE ORDEN SET PROVEEDOR_ID = ?, ESTADO_ID = ?, FACTURA = ? WHERE ID = ?", new Object[]{ o.getPROVEEDOR().getID(), o.getESTADO().getID(), o.getFACTURA(), o.getID()});
             GenerarHistorial(o.getID(), o.getESTADO().getID(), Principal.USUARIO.getCODIGO(), o.getOBS());
-            Util.Mensaje("Orden " + String.format("%05d", o.getID()) + " procesada.", "Exito", JOptionPane.INFORMATION_MESSAGE);
+            Util.Mensaje("¡Orden " + String.format("%05d", o.getID()) + " procesada!", "Exito", JOptionPane.INFORMATION_MESSAGE);
         } catch (SQLException ex) {
             Util.Mensaje(ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
@@ -141,7 +141,7 @@ public class PedidoController implements IPedido {
         ArrayList<Orden> l = new ArrayList<Orden>();
         try {
             dbBean cnn = new dbBean();
-            ResultSet rs = cnn.execParamSQL("SELECT O.ID, O.FECHA, O.PROVEEDOR_ID, P.RAZON_SOCIAL, E.DESCRIPCION, H.USUARIO FROM ORDEN O INNER JOIN ESTADO E ON O.ESTADO_ID = E.ID INNER JOIN HISTORIAL H ON H.ESTADO_ID = E.ID AND H.ORDEN_ID = O.ID INNER JOIN PROVEEDOR P ON O.PROVEEDOR_ID = P.ID WHERE E.ID = ?", new String[]{String.format("%d", estado)});
+            ResultSet rs = cnn.execParamSQL("SELECT O.ID, O.FECHA, O.PROVEEDOR_ID, P.RAZON_SOCIAL, E.DESCRIPCION, H.USUARIO FROM ORDEN O INNER JOIN ESTADO E ON O.ESTADO_ID = E.ID INNER JOIN HISTORIAL H ON H.ESTADO_ID = E.ID AND H.ORDEN_ID = O.ID LEFT JOIN PROVEEDOR P ON O.PROVEEDOR_ID = P.ID WHERE E.ID = ?", new String[]{String.format("%d", estado)});
             while (rs.next()) {
                 Orden p = new Orden();
                 p.setID(rs.getInt("ID"));

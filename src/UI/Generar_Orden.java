@@ -122,8 +122,9 @@ public class Generar_Orden extends JInternalFrame {
             }
         });
 
-        btGenerar = new MyCustomButton("img/grabar.png", "GRABAR", false);
+        btGenerar = new MyCustomButton("img/grabar.png", "GRABAR", false);        
         getContentPane().add(btGenerar);
+        btGenerar.setEnabled(false);
         btGenerar.setBounds(1225, 396, 70, 70);
         btGenerar.addActionListener((ActionEvent ae) -> {
             controller.GenerarPedido(arrDetalle, txtObs.getText());
@@ -191,6 +192,7 @@ public class Generar_Orden extends JInternalFrame {
             modelo2.addRow(new Object[]{d.getPRODUCTO_ID(), d.getNOMBRE(), d.getPRECIO(), d.getCANTIDAD(), Util.RoundedValue(d.getTOTAL()), new ImageIcon("img/del.png")});
         }
         tbProducto2.setModel(modelo2);
+        btGenerar.setEnabled(!arrDetalle.isEmpty());
     }
 
     public void AgregarDetalle() {

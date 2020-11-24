@@ -16,14 +16,11 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.text.ParseException;
 import java.util.ArrayList;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
-import javax.swing.JComboBox;
 import javax.swing.JFormattedTextField;
 import javax.swing.JInternalFrame;
 import javax.swing.JLabel;
@@ -32,14 +29,10 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
-import javax.swing.event.TableModelEvent;
-import javax.swing.event.TableModelListener;
 import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableModel;
 import javax.swing.text.MaskFormatter;
 
 import org.jdesktop.swingx.JXSearchField;
-import org.jdesktop.swingx.autocomplete.AutoCompleteDecorator;
 
 public class Recibir_Orden extends JInternalFrame {
 
@@ -80,7 +73,7 @@ public class Recibir_Orden extends JInternalFrame {
         }
     };
 
-    public Recibir_Orden() throws ParseException {
+    public Recibir_Orden()  {
         this.setLayout(null);
         this.setVisible(true);
         this.setClosable(true);
@@ -116,9 +109,12 @@ public class Recibir_Orden extends JInternalFrame {
         jLabel2.setBounds(683, 356, 97, 16);
         jLabel2.setFont(new java.awt.Font("Century Gothic", 1, 12));
 
-        txtFacturaAsociada = new JFormattedTextField(new MaskFormatter("##-#####"));
-        getContentPane().add(txtFacturaAsociada);
-        txtFacturaAsociada.setBounds(780, 353, 543, 23);
+        try {
+            txtFacturaAsociada = new JFormattedTextField(new MaskFormatter("E###-#####"));       
+            getContentPane().add(txtFacturaAsociada);
+            txtFacturaAsociada.setBounds(780, 353, 543, 23);
+        } catch (Exception e) {
+        }
 
         jLabel3 = new JLabel();
         getContentPane().add(jLabel3);
@@ -146,6 +142,7 @@ public class Recibir_Orden extends JInternalFrame {
                 Proveedor p = new Proveedor();
                 int fila = tbOrdenes.getSelectedRow();
                 p.setID(Integer.parseInt(modeloOrden.getValueAt(fila, 3).toString()));
+                o.setPROVEEDOR(p);
                 o.setESTADO(new Estado(Estado.ENTREGADA));
                 controller.ProcesarOrden(o);
             }

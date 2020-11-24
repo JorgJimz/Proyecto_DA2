@@ -148,6 +148,7 @@ public class Procesar_Orden extends JInternalFrame {
                 p.setID(((Proveedor) cboProveedor.getSelectedItem()).getID());
                 o.setPROVEEDOR(p);
                 o.setOBS(txtObs.getText());
+                o.setFACTURA("");
                 o.setESTADO(new Estado(Estado.PROCESADA));
                 controller.ProcesarOrden(o);
             }
