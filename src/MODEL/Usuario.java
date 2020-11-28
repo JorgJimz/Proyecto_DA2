@@ -6,9 +6,9 @@ public class Usuario {
     private String CODIGO;
     private String PERSONA;
     private String PASSWORD;
-    private String PERFIL;
+    private Perfil PERFIL;
 
-    public Usuario(int ID, String CODIGO, String PERSONA, String PERFIL) {
+    public Usuario(int ID, String CODIGO, String PERSONA, Perfil PERFIL) {
         this.ID = ID;
         this.CODIGO = CODIGO;
         this.PERSONA = PERSONA;
@@ -31,7 +31,7 @@ public class Usuario {
         return PASSWORD;
     }
 
-    public String getPERFIL() {
+    public Perfil getPERFIL() {
         return PERFIL;
     }
 
@@ -51,7 +51,7 @@ public class Usuario {
         this.PASSWORD = PASSWORD;
     }
 
-    public void setPERFIL(String PERFIL) {
+    public void setPERFIL(Perfil PERFIL) {
         this.PERFIL = PERFIL;
     }
 

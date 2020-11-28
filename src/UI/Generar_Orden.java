@@ -10,6 +10,7 @@ import UTIL.Util;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
@@ -34,6 +35,7 @@ public class Generar_Orden extends JInternalFrame {
     private JLabel lblTotal;
     private JScrollPane spProducto;
     private JTable tbProducto2;
+    private JCheckBox chkUrgente;
     private ArrayList<Detalle_Orden> arrDetalle;
 
     PedidoController controller = new PedidoController();
@@ -67,6 +69,17 @@ public class Generar_Orden extends JInternalFrame {
         this.setBounds(0, 0, 1321, 569);
         this.setPreferredSize(new java.awt.Dimension(1321, 569));
 
+        chkUrgente = new JCheckBox("SOLO URGENTES");
+        chkUrgente.setBounds(508, 40, 150, 23);
+        chkUrgente.setFont(new Font("Century Gothic", Font.BOLD, 14));
+        chkUrgente.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent ae) {
+                ListarProductos();
+            }
+        });
+        getContentPane().add(chkUrgente);
+
         spTabla = new JScrollPane();
         getContentPane().add(spTabla);
         spTabla.setBounds(12, 84, 626, 436);
@@ -86,8 +99,9 @@ public class Generar_Orden extends JInternalFrame {
         tbProducto.setRowHeight(28);
         tbProducto.setDefaultRenderer(Object.class, new ProductoRenderer());
         txtBuscador = new JXSearchField("Buscar por DESCRIPCION");
+        txtBuscador.setBorder(BorderFactory.createMatteBorder(1, 1, 1, 1, Color.GRAY));
         getContentPane().add(txtBuscador);
-        txtBuscador.setBounds(12, 40, 628, 23);
+        txtBuscador.setBounds(12, 40, 490, 23);
         jLabel1 = new JLabel();
         getContentPane().add(jLabel1);
         jLabel1.setText("LISTA DE PRODUCTOS");
@@ -122,7 +136,7 @@ public class Generar_Orden extends JInternalFrame {
             }
         });
 
-        btGenerar = new MyCustomButton("img/grabar.png", "GRABAR", false);        
+        btGenerar = new MyCustomButton("img/grabar.png", "GRABAR", false);
         getContentPane().add(btGenerar);
         btGenerar.setEnabled(false);
         btGenerar.setBounds(1225, 396, 70, 70);
@@ -173,8 +187,8 @@ public class Generar_Orden extends JInternalFrame {
         ButtonColumn buttonColumnDel = new ButtonColumn(tbProducto2, delete, 5);
         buttonColumnDel.setMnemonic(KeyEvent.VK_D);
     }
-    
-    public void Cerrar(){
+
+    public void Cerrar() {
         this.dispose();
     }
 
@@ -237,7 +251,7 @@ public class Generar_Orden extends JInternalFrame {
 
     public void ListarProductos() {
         try {
-            ArrayList<Producto> arrProd = controller.CargarProductos(txtBuscador.getText());
+            ArrayList<Producto> arrProd = controller.CargarProductos(txtBuscador.getText(), chkUrgente.isSelected());
             modelo.setRowCount(0);
             arrProd.forEach((x) -> {
                 modelo.addRow(new Object[]{x.getID(), x.getDESCRIPCION(), x.getPRECIO(), x.getUNIDAD_MEDIDA(), x.getSTOCK_ACTUAL(), x.getSTOCK_MINIMO(), new ImageIcon("img/add.png")});

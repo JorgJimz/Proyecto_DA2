@@ -29,6 +29,7 @@ public class Principal extends JFrame {
     public JMenuItem genOrden;
     public JMenuItem recOrden;
     public JMenuItem proOrden;
+    public JMenuItem hisOrden;
 
     public JDesktopPane contenedor;
     public static Usuario USUARIO;
@@ -48,7 +49,7 @@ public class Principal extends JFrame {
         this.add(statusPanel, BorderLayout.SOUTH);
         statusPanel.setPreferredSize(new Dimension(this.getWidth(), 20));
         statusPanel.setLayout(new BoxLayout(statusPanel, BoxLayout.X_AXIS));
-        JLabel statusLabel = new JLabel("USUARIO ACTUAL: " + usr.getPERSONA() + " [" + usr.getPERFIL() + "]");
+        JLabel statusLabel = new JLabel("USUARIO ACTUAL: " + usr.getPERSONA() + " [" + usr.getPERFIL().getDESCRIPCION() + "]");
         statusLabel.setHorizontalAlignment(SwingConstants.RIGHT);
         statusLabel.setFont(new Font("Century Gothic", Font.BOLD, 14));
         statusPanel.add(statusLabel);
@@ -83,6 +84,14 @@ public class Principal extends JFrame {
         proOrden.addActionListener((ActionEvent ae) -> {
             Procesar_Orden ui_pro_ped = new Procesar_Orden();
             contenedor.add(ui_pro_ped);
+        });
+
+        hisOrden = new JMenuItem("Historial");
+        hisOrden.setFont(new Font("Century Gothic", Font.BOLD, 14));
+        menuAlmacen.add(hisOrden);
+        hisOrden.addActionListener((ActionEvent ae) -> {
+            Historial_Orden ui_his_ord = new Historial_Orden();
+            contenedor.add(ui_his_ord);
         });
 
         menuBarPrincipal.add(menuCompras);

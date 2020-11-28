@@ -1,6 +1,8 @@
 package UI;
 
 import COMMON.ButtonColumn;
+import COMMON.DetalleOrdenRenderer;
+import COMMON.EstadoLabel;
 import COMMON.MyCustomButton;
 import DAO.PedidoController;
 import MODEL.Detalle_Orden;
@@ -47,7 +49,7 @@ public class Procesar_Orden extends JInternalFrame {
     private JLabel jLabel7;
     private JScrollPane spOrdenes;
     private JTextArea txtObs;
-    private JLabel lblStatus;
+    private EstadoLabel lblStatus;
     private JLabel lblFecha;
     private JLabel lblOrden;
     private JLabel jLabel6;
@@ -74,7 +76,7 @@ public class Procesar_Orden extends JInternalFrame {
     DefaultTableModel modeloOrden = new DefaultTableModel(null, new String[]{"ID", "FECHA", "USUARIO", "ESTADO", ""}) {
         @Override
         public boolean isCellEditable(int rowIndex, int colIndex) {
-            if(colIndex == 4){
+            if (colIndex == 4) {
                 return true;
             }
             return false;
@@ -106,6 +108,7 @@ public class Procesar_Orden extends JInternalFrame {
         jLabel1.setBounds(12, 24, 198, 16);
 
         tbDetalle = new JTable(modelo);
+        tbDetalle.setRowHeight(28);
         scpPedidos = new JScrollPane();
         getContentPane().add(scpPedidos);
         scpPedidos.setViewportView(tbDetalle);
@@ -121,7 +124,11 @@ public class Procesar_Orden extends JInternalFrame {
         controller.ObtenerProveedores().forEach(ci -> cboProveedor.addItem(ci));
         AutoCompleteDecorator.decorate(cboProveedor);
         getContentPane().add(cboProveedor);
-        cboProveedor.setBounds(780, 353, 543, 23);
+        cboProveedor.setBounds(780, 353, 543, 28);
+
+        lblStatus = new EstadoLabel();
+        getContentPane().add(lblStatus);
+        lblStatus.setBounds(1176, 64, 147, 15);
 
         jLabel3 = new JLabel();
         getContentPane().add(jLabel3);
@@ -151,23 +158,27 @@ public class Procesar_Orden extends JInternalFrame {
                 o.setFACTURA("");
                 o.setESTADO(new Estado(Estado.PROCESADA));
                 controller.ProcesarOrden(o);
+                Cerrar();
             }
         });
-        
+
         btnAnular = new MyCustomButton("img/cerrar.png", "ANULAR", false);
         getContentPane().add(btnAnular);
         btnAnular.setBounds(1255, 515, 70, 70);
-        btnAnular.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent ae) {
-                 Orden o = new Orden();
+        btnAnular.addActionListener((ActionEvent ae) -> {
+            int option = JOptionPane.showConfirmDialog(null, "<html><h4><b>¿Seguro de anular la orden?</b></h4></html>", "Mensaje de Alerta",
+                    JOptionPane.YES_NO_OPTION);
+            if (option == JOptionPane.YES_OPTION) {
+                Orden o = new Orden();
                 o.setID(Integer.parseInt(lblOrden.getText()));
                 Proveedor p = new Proveedor();
                 p.setID(((Proveedor) cboProveedor.getSelectedItem()).getID());
                 o.setPROVEEDOR(p);
                 o.setOBS(txtObs.getText());
+                o.setFACTURA("");
                 o.setESTADO(new Estado(Estado.ANULADA));
                 controller.ProcesarOrden(o);
+                Cerrar();
             }
         });
 
@@ -199,17 +210,13 @@ public class Procesar_Orden extends JInternalFrame {
         lblFecha.setBounds(958, 64, 145, 15);
         lblFecha.setFont(new java.awt.Font("Century Gothic", 1, 12));
 
-        lblStatus = new JLabel();
-        getContentPane().add(lblStatus);
-        lblStatus.setBounds(1176, 64, 147, 15);
-        lblStatus.setFont(new java.awt.Font("Century Gothic", 1, 12));
-
         spOrdenes = new JScrollPane();
         getContentPane().add(spOrdenes);
         spOrdenes.setBounds(12, 56, 640, 450);
 
         tbOrdenes = new JTable();
         tbOrdenes.setRowHeight(28);
+        tbOrdenes.setDefaultRenderer(Object.class, new DetalleOrdenRenderer());
         spOrdenes.setViewportView(tbOrdenes);
         tbOrdenes.addMouseListener(new MouseAdapter() {
             @Override
@@ -244,16 +251,20 @@ public class Procesar_Orden extends JInternalFrame {
         if (o != null) {
             lblOrden.setText(String.format("%05d", o.getID()));
             lblFecha.setText(o.getFECHA());
-            lblStatus.setText(o.getESTADO().getDESCRIPCION());
+            lblStatus.Colorear(o.getESTADO().getDESCRIPCION());
             ListarDetalle(o.getDETALLE());
         } else {
             Util.Mensaje("No hay información para mostrar.", "Orden no encontrada", JOptionPane.WARNING_MESSAGE);
         }
     }
 
+    public void Cerrar() {
+        this.dispose();
+    }
+
     public void ListarOrdenes() {
         try {
-            ArrayList<Orden> arr = controller.ObtenerOrdenes(Estado.GENERADA);
+            ArrayList<Orden> arr = controller.ObtenerOrdenes(Estado.GENERADA, srcBuscador.getText());
             modeloOrden.setRowCount(0);
             arr.forEach((x) -> {
                 modeloOrden.addRow(new Object[]{x.getID(), x.getFECHA(), x.getUSUARIO(), x.getESTADO().getDESCRIPCION(), new ImageIcon("img/detail.png")});
@@ -268,7 +279,7 @@ public class Procesar_Orden extends JInternalFrame {
         try {
             modelo.setRowCount(0);
             arr.forEach((_item) -> {
-                modelo.addRow(new Object[]{_item.getPRODUCTO().getID(), _item.getPRODUCTO().getDESCRIPCION(), _item.getPRODUCTO().getPRECIO(), _item.getCANTIDAD(), _item.getPRECIO() * _item.getCANTIDAD()});
+                modelo.addRow(new Object[]{_item.getPRODUCTO().getID(), _item.getPRODUCTO().getDESCRIPCION(), _item.getPRODUCTO().getPRECIO(), _item.getCANTIDAD(), Util.RoundedValue(_item.getPRODUCTO().getPRECIO() * _item.getCANTIDAD())});
             });
             tbDetalle.setModel(modelo);
         } catch (Exception e) {

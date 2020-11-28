@@ -12,6 +12,7 @@ public class Detalle_Orden {
     private double TOTAL;
     private double PRECIO;
     private String NOMBRE;
+    private Kardex KARDEX;
 
     public Detalle_Orden() {
     }
@@ -78,6 +79,14 @@ public class Detalle_Orden {
 
     public void setNOMBRE(String NOMBRE) {
         this.NOMBRE = NOMBRE;
+    }
+
+    public Kardex getKARDEX() {
+        return KARDEX;
+    }
+
+    public void setKARDEX(Kardex KARDEX) {
+        this.KARDEX = KARDEX;
     }
 
 }

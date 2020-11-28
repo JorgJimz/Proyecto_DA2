@@ -1,17 +1,24 @@
 package UI;
 
 import COMMON.ButtonColumn;
+import COMMON.CheckDetailEditor;
+import COMMON.CheckDetailRenderer;
+import COMMON.DetalleOrdenRenderer;
+import COMMON.EstadoLabel;
+import COMMON.JIconTextField;
 import COMMON.MyCustomButton;
 import DAO.PedidoController;
 import MODEL.Detalle_Orden;
 import MODEL.Estado;
+import MODEL.Kardex;
 import MODEL.Orden;
 import MODEL.Proveedor;
 import UTIL.Util;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
@@ -21,7 +28,6 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
-import javax.swing.JFormattedTextField;
 import javax.swing.JInternalFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -29,16 +35,15 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.SwingConstants;
 import javax.swing.table.DefaultTableModel;
-import javax.swing.text.MaskFormatter;
 
 import org.jdesktop.swingx.JXSearchField;
 
 public class Recibir_Orden extends JInternalFrame {
 
-    private JTextField txtBuscador;
     private JTextField srcBuscador;
-    private JFormattedTextField txtFacturaAsociada;
+    private JIconTextField txtFacturaAsociada;
     private JTable tbOrdenes;
     private JLabel jLabel7;
     private JScrollPane spOrdenes;
@@ -59,21 +64,21 @@ public class Recibir_Orden extends JInternalFrame {
 
     PedidoController controller = new PedidoController();
 
-    DefaultTableModel modelo = new DefaultTableModel(null, new String[]{"ID", "DESCRIPCION", "PRECIO", "CANTIDAD", "IMPORTE"}) {
+    DefaultTableModel modelo = new DefaultTableModel(null, new String[]{"", "ID", "DESCRIPCION", "PRECIO", "ACTUAL", "PEDIDO", "RECIBIDO", "IMPORTE", "OBSERVACIONES", "ORDEN_ID"}) {
         @Override
         public boolean isCellEditable(int rowIndex, int colIndex) {
-            return false;
+            return colIndex == 0 || colIndex == 6 || colIndex == 8;
         }
     };
 
-    DefaultTableModel modeloOrden = new DefaultTableModel(null, new String[]{"ID", "FECHA", "USUARIO", "ID_PRV", "PROVEEDOR", "ESTADO", ""}) {
+    DefaultTableModel modeloOrden = new DefaultTableModel(null, new String[]{"ID", "FECHA", "USUARIO", "ID_PRV", "ESTADO", "PROVEEDOR", ""}) {
         @Override
         public boolean isCellEditable(int rowIndex, int colIndex) {
             return colIndex == 6;
         }
     };
 
-    public Recibir_Orden()  {
+    public Recibir_Orden() {
         this.setLayout(null);
         this.setVisible(true);
         this.setClosable(true);
@@ -86,7 +91,7 @@ public class Recibir_Orden extends JInternalFrame {
         srcBuscador.addKeyListener(new KeyAdapter() {
             @Override
             public void keyReleased(KeyEvent ke) {
-                //
+                ListarOrdenes();
             }
         });
 
@@ -98,6 +103,11 @@ public class Recibir_Orden extends JInternalFrame {
         jLabel1.setBounds(12, 24, 198, 16);
 
         tbDetalle = new JTable(modelo);
+        tbDetalle.setDefaultRenderer(Object.class, new CheckDetailRenderer());
+        tbDetalle.setDefaultEditor(Object.class, new CheckDetailEditor());
+        tbDetalle.removeColumn(tbDetalle.getColumnModel().getColumn(4));
+        tbDetalle.removeColumn(tbDetalle.getColumnModel().getColumn(8));
+        tbDetalle.setRowHeight(28);
         scpPedidos = new JScrollPane();
         getContentPane().add(scpPedidos);
         scpPedidos.setViewportView(tbDetalle);
@@ -109,12 +119,26 @@ public class Recibir_Orden extends JInternalFrame {
         jLabel2.setBounds(683, 356, 97, 16);
         jLabel2.setFont(new java.awt.Font("Century Gothic", 1, 12));
 
-        try {
-            txtFacturaAsociada = new JFormattedTextField(new MaskFormatter("E###-#####"));       
-            getContentPane().add(txtFacturaAsociada);
-            txtFacturaAsociada.setBounds(780, 353, 543, 23);
-        } catch (Exception e) {
-        }
+        txtFacturaAsociada = new JIconTextField();
+        getContentPane().add(txtFacturaAsociada);
+        txtFacturaAsociada.setBounds(780, 353, 543, 28);
+        txtFacturaAsociada.addFocusListener(new FocusAdapter() {
+            @Override
+            public void focusLost(FocusEvent fe) {
+                int fila = tbOrdenes.getSelectedRow();
+                boolean flag = controller.ValidarFactura(modeloOrden.getValueAt(fila, 3).toString(), txtFacturaAsociada.getText());
+                if (flag) {
+                    txtFacturaAsociada.setIcon(new ImageIcon("img/alert.png"));
+                    txtFacturaAsociada.setOrientation(SwingConstants.LEFT);
+                    btnProcesar.setEnabled(false);
+                } else {
+                    txtFacturaAsociada.setIcon(new ImageIcon("img/ok.png"));
+                    txtFacturaAsociada.setOrientation(SwingConstants.LEFT);
+                    btnProcesar.setEnabled(true);
+                }
+
+            }
+        });
 
         jLabel3 = new JLabel();
         getContentPane().add(jLabel3);
@@ -131,10 +155,11 @@ public class Recibir_Orden extends JInternalFrame {
 
         btnProcesar = new MyCustomButton("img/grabar.png", "GRABAR", false);
         getContentPane().add(btnProcesar);
-        btnProcesar.setBounds(1180, 515, 70, 70);
-        btnProcesar.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent ae) {
+        btnProcesar.setEnabled(false);
+        btnProcesar.setBounds(1250, 525, 70, 70);
+        btnProcesar.addActionListener((ActionEvent ae) -> {
+            Integer idEstado = 0;
+            if (ProcesarStock(idEstado)) {
                 Orden o = new Orden();
                 o.setID(Integer.parseInt(lblOrden.getText()));
                 o.setFACTURA(txtFacturaAsociada.getText());
@@ -143,8 +168,9 @@ public class Recibir_Orden extends JInternalFrame {
                 int fila = tbOrdenes.getSelectedRow();
                 p.setID(Integer.parseInt(modeloOrden.getValueAt(fila, 3).toString()));
                 o.setPROVEEDOR(p);
-                o.setESTADO(new Estado(Estado.ENTREGADA));
+                o.setESTADO(new Estado(idEstado));
                 controller.ProcesarOrden(o);
+                Cerrar();
             }
         });
 
@@ -176,16 +202,11 @@ public class Recibir_Orden extends JInternalFrame {
         lblFecha.setBounds(958, 64, 145, 15);
         lblFecha.setFont(new java.awt.Font("Century Gothic", 1, 12));
 
-        lblStatus = new JLabel();
-        getContentPane().add(lblStatus);
-        lblStatus.setBounds(1176, 64, 147, 15);
-        lblStatus.setFont(new java.awt.Font("Century Gothic", 1, 12));
-
         spOrdenes = new JScrollPane();
         getContentPane().add(spOrdenes);
-        spOrdenes.setBounds(12, 56, 640, 450);
-
+        spOrdenes.setBounds(12, 56, 640, 540);
         tbOrdenes = new JTable(modeloOrden);
+        tbOrdenes.setDefaultRenderer(Object.class, new DetalleOrdenRenderer());
         tbOrdenes.setRowHeight(28);
         tbOrdenes.removeColumn(tbOrdenes.getColumnModel().getColumn(3));
         spOrdenes.setViewportView(tbOrdenes);
@@ -222,7 +243,9 @@ public class Recibir_Orden extends JInternalFrame {
         if (o != null) {
             lblOrden.setText(String.format("%05d", o.getID()));
             lblFecha.setText(o.getFECHA());
-            lblStatus.setText(o.getESTADO().getDESCRIPCION());
+            lblStatus = new EstadoLabel(o.getESTADO().getDESCRIPCION());
+            getContentPane().add(lblStatus);
+            lblStatus.setBounds(1176, 64, 147, 15);
             ListarDetalle(o.getDETALLE());
         } else {
             Util.Mensaje("No hay información para mostrar.", "Orden no encontrada", JOptionPane.WARNING_MESSAGE);
@@ -231,10 +254,10 @@ public class Recibir_Orden extends JInternalFrame {
 
     public void ListarOrdenes() {
         try {
-            ArrayList<Orden> arr = controller.ObtenerOrdenes(Estado.PROCESADA);
+            ArrayList<Orden> arr = controller.ObtenerOrdenes(Estado.PROCESADA, srcBuscador.getText());
             modeloOrden.setRowCount(0);
             arr.forEach((x) -> {
-                modeloOrden.addRow(new Object[]{x.getID(), x.getFECHA(), x.getUSUARIO(), x.getPROVEEDOR().getID(), x.getPROVEEDOR().getRAZON_SOCIAL(), x.getESTADO().getDESCRIPCION(), new ImageIcon("img/detail.png")});
+                modeloOrden.addRow(new Object[]{x.getID(), x.getFECHA(), x.getUSUARIO(), x.getPROVEEDOR().getID(), x.getESTADO().getDESCRIPCION(), x.getPROVEEDOR().getRAZON_SOCIAL(), new ImageIcon("img/detail.png")});
             });
             tbOrdenes.setModel(modeloOrden);
         } catch (Exception e) {
@@ -242,11 +265,15 @@ public class Recibir_Orden extends JInternalFrame {
         }
     }
 
+    public void Cerrar() {
+        this.dispose();
+    }
+
     public void ListarDetalle(ArrayList<Detalle_Orden> arr) {
         try {
             modelo.setRowCount(0);
             arr.forEach((_item) -> {
-                modelo.addRow(new Object[]{_item.getPRODUCTO().getID(), _item.getPRODUCTO().getDESCRIPCION(), _item.getPRODUCTO().getPRECIO(), _item.getCANTIDAD(), _item.getPRECIO() * _item.getCANTIDAD()});
+                modelo.addRow(new Object[]{0, _item.getPRODUCTO().getID(), _item.getPRODUCTO().getDESCRIPCION(), _item.getPRODUCTO().getPRECIO(), _item.getPRODUCTO().getSTOCK_ACTUAL(), _item.getCANTIDAD(), _item.getCANTIDAD(), Util.RoundedValue(_item.getPRODUCTO().getPRECIO() * _item.getCANTIDAD()), "", _item.getORDEN_ID()});
             });
             tbDetalle.setModel(modelo);
         } catch (Exception e) {
@@ -254,4 +281,51 @@ public class Recibir_Orden extends JInternalFrame {
         }
     }
 
+    public boolean ProcesarStock(Integer status) {
+        boolean flag = false;
+        status = Estado.ENTREGADA;
+        int totalOk = 0;
+        int totalKo = 0;
+        ArrayList<Kardex> arr = new ArrayList<Kardex>();
+        for (int i = 0; i < tbDetalle.getRowCount(); i++) {
+            if (Integer.parseInt(modelo.getValueAt(i, 0).toString()) == 1) {
+                int cantidad = Integer.parseInt(modelo.getValueAt(i, 5).toString());
+                int stock_actual = Integer.parseInt(modelo.getValueAt(i, 4).toString());
+                Kardex k = new Kardex(Integer.parseInt(modelo.getValueAt(i, 1).toString()),
+                        cantidad,
+                        cantidad,
+                        "INGRESO",
+                        stock_actual,
+                        (stock_actual + cantidad),
+                        modelo.getValueAt(i, 8).toString(),
+                        Integer.parseInt(modelo.getValueAt(i, 9).toString())
+                );
+                arr.add(k);
+                totalOk++;
+            } else {
+                if (modelo.getValueAt(i, 8).toString().isEmpty()) {
+                    Util.Mensaje("Hay productos inválidos, por favor, ingrese las observaciones para el seguimiento respectivo.", "Alerta", JOptionPane.WARNING_MESSAGE);
+                    return false;
+                }
+                int cantidad_pedida = Integer.parseInt(modelo.getValueAt(i, 5).toString());
+                int cantidad_recibida = Integer.parseInt(modelo.getValueAt(i, 6).toString());
+                int stock_actual = Integer.parseInt(modelo.getValueAt(i, 4).toString());
+                Kardex k = new Kardex(Integer.parseInt(modelo.getValueAt(i, 1).toString()),
+                        cantidad_recibida,
+                        cantidad_pedida,
+                        "ERROR",
+                        stock_actual,
+                        (stock_actual + cantidad_recibida),
+                        modelo.getValueAt(i, 8).toString(),
+                        Integer.parseInt(modelo.getValueAt(i, 9).toString())
+                );
+                arr.add(k);
+                totalKo++;
+                status = Estado.OBSERVADA;
+            }
+        }
+        controller.GenerarKardex(arr);
+        flag = true;
+        return flag;
+    }
 }
