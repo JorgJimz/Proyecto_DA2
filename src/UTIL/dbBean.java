@@ -4,11 +4,11 @@ import java.sql.*;
 
 public class dbBean {
     
-    String dbURL = "jdbc:sqlserver://localhost;databaseName=DB_DELICIAS;integratedSecurity=true";
+    String dbURL = "jdbc:sqlserver://localhost:1433;databaseName=DB_DELICIAS";
     String dbDriver = "com.microsoft.sqlserver.jdbc.SQLServerDriver";
     private Connection dbCon;
-    private String login = "";
-    private String password = "";
+    private String login = "sa";
+    private String password = "123456789";
     
     public dbBean() {
         connect();
@@ -22,7 +22,7 @@ public class dbBean {
             return false;
         }
         try {
-            dbCon = DriverManager.getConnection(this.dbURL);
+            dbCon = DriverManager.getConnection(this.dbURL, this.login, this.password);
         } catch (SQLException ex) {
             System.out.println(ex);
             return false;
@@ -53,6 +53,7 @@ public class dbBean {
     
     public int insertSQL(String sql, Object[] params) throws SQLException {
         int Id = 0;
+        // acepta parametros
         PreparedStatement ps = dbCon.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS);
         if (params != null) {
             for (int i = 0, j = 1; i < params.length; i++, j++) {                
