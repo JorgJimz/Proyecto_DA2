@@ -1,6 +1,8 @@
 package MODEL;
 
 import java.util.ArrayList;
+import net.sf.jasperreports.engine.JRDataSource;
+import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
 
 public class Orden {
 
@@ -9,6 +11,7 @@ public class Orden {
     private Estado ESTADO;
     private Proveedor PROVEEDOR;
     private String FACTURA;
+    private String FECHA_ENTREGA;
 
     //NOT MAPPED
     private String OBS;
@@ -36,6 +39,18 @@ public class Orden {
         return PROVEEDOR;
     }
 
+    public String getFECHA_ENTREGA() {
+        return FECHA_ENTREGA;
+    }
+
+    public String getFACTURA() {
+        return FACTURA;
+    }
+
+    public String getUSUARIO() {
+        return USUARIO;
+    }
+
     public void setID(int ID) {
         this.ID = ID;
     }
@@ -52,22 +67,18 @@ public class Orden {
         this.PROVEEDOR = PROVEEDOR;
     }
 
-    public String getFACTURA() {
-        return FACTURA;
-    }
-
     public void setFACTURA(String FACTURA) {
         this.FACTURA = FACTURA;
     }
-    
+
     public ArrayList<Detalle_Orden> getDETALLE() {
         return DETALLE;
     }
 
     public void setDETALLE(ArrayList<Detalle_Orden> DETALLE) {
         this.DETALLE = DETALLE;
-    }    
-    
+    }
+
     public String getOBS() {
         return OBS;
     }
@@ -76,11 +87,15 @@ public class Orden {
         this.OBS = OBS;
     }
 
-    public String getUSUARIO() {
-        return USUARIO;
+    public void setFECHA_ENTREGA(String FECHA_ENTREGA) {
+        this.FECHA_ENTREGA = FECHA_ENTREGA;
     }
 
     public void setUSUARIO(String USUARIO) {
         this.USUARIO = USUARIO;
-    }    
+    }
+
+    public JRDataSource getDETALLEJasper() {
+        return new JRBeanCollectionDataSource(DETALLE);
+    }
 }

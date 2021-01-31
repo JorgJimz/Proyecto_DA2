@@ -4,6 +4,7 @@ public class Historial {
 
     private int ID;
     private int ESTADO_ID;
+    private Estado ESTADO;
     private int ORDEN_ID;
     private String FECHA;
     private String USUARIO;
@@ -16,6 +17,10 @@ public class Historial {
         this.FECHA = FECHA;
         this.USUARIO = USUARIO;
         this.OBSERVACION = OBSERVACION;
+    }
+
+    public Historial() {
+
     }
 
     public int getID() {
@@ -42,6 +47,10 @@ public class Historial {
         return OBSERVACION;
     }
 
+    public Estado getESTADO() {
+        return ESTADO;
+    }
+
     public void setID(int ID) {
         this.ID = ID;
     }
@@ -65,4 +74,9 @@ public class Historial {
     public void setOBSERVACION(String OBSERVACION) {
         this.OBSERVACION = OBSERVACION;
     }
+
+    public void setESTADO(Estado ESTADO) {
+        this.ESTADO = ESTADO;
+    }
+
 }

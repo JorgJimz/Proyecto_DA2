@@ -29,4 +29,11 @@ public class Distrito {
         this.NOMBRE = NOMBRE;
     }
 
+    @Override
+    public String toString() {
+        return NOMBRE.trim();
+    }
+
+    
+    
 }

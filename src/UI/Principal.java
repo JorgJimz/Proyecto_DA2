@@ -1,5 +1,7 @@
 package UI;
 
+import DAO.UsuarioController;
+import MODEL.Aplicacion;
 import MODEL.Usuario;
 import UTIL.Util;
 import java.awt.BorderLayout;
@@ -7,9 +9,17 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.HeadlessException;
 import java.awt.event.ActionEvent;
+import java.util.ArrayList;
+import static java.util.Comparator.comparingInt;
+import java.util.TreeSet;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import static java.util.stream.Collectors.collectingAndThen;
+import static java.util.stream.Collectors.toCollection;
 import javax.swing.BoxLayout;
 import javax.swing.JDesktopPane;
 import javax.swing.JFrame;
+import javax.swing.JInternalFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
@@ -23,19 +33,14 @@ public class Principal extends JFrame {
 
     public JMenuBar menuBarPrincipal;
 
-    public JMenu menuAlmacen;
-    public JMenu menuCompras;
-
-    public JMenuItem genOrden;
-    public JMenuItem recOrden;
-    public JMenuItem proOrden;
-    public JMenuItem hisOrden;
-
-    public JDesktopPane contenedor;
+    public static JDesktopPane contenedor;
     public static Usuario USUARIO;
+    UsuarioController controller = new UsuarioController();
 
     public Principal(Usuario usr) throws HeadlessException {
         USUARIO = usr;
+
+        ArrayList<Aplicacion> arrApp = controller.ObtenerMenu(String.valueOf(USUARIO.getPERFIL().getID()));
 
         Util.Mensaje("¡Hola! " + usr.getPERSONA(), "Bienvenido", JOptionPane.INFORMATION_MESSAGE);
 
@@ -57,47 +62,35 @@ public class Principal extends JFrame {
         contenedor = new JDesktopPane();
 
         menuBarPrincipal = new JMenuBar();
-        menuAlmacen = new JMenu("Almacen");
-        menuCompras = new JMenu("Compras");
-        menuAlmacen.setFont(new Font("Century Gothic", Font.BOLD, 14));
-        menuCompras.setFont(new Font("Century Gothic", Font.BOLD, 14));
-
-        genOrden = new JMenuItem("Generar Orden");
-        genOrden.setFont(new Font("Century Gothic", Font.BOLD, 14));
-        menuAlmacen.add(genOrden);
-        genOrden.addActionListener((ActionEvent ae) -> {
-            Generar_Orden ui_gen_ped = new Generar_Orden();
-            contenedor.add(ui_gen_ped);
-        });
-
-        recOrden = new JMenuItem("Recibir Orden");
-        recOrden.setFont(new Font("Century Gothic", Font.BOLD, 14));
-        menuAlmacen.add(recOrden);
-        recOrden.addActionListener((ActionEvent ae) -> {
-            Recibir_Orden ui_rec_ped = new Recibir_Orden();
-            contenedor.add(ui_rec_ped);
-        });
-
-        proOrden = new JMenuItem("Procesar Orden");
-        proOrden.setFont(new Font("Century Gothic", Font.BOLD, 14));
-        menuCompras.add(proOrden);
-        proOrden.addActionListener((ActionEvent ae) -> {
-            Procesar_Orden ui_pro_ped = new Procesar_Orden();
-            contenedor.add(ui_pro_ped);
-        });
-
-        hisOrden = new JMenuItem("Historial");
-        hisOrden.setFont(new Font("Century Gothic", Font.BOLD, 14));
-        menuAlmacen.add(hisOrden);
-        hisOrden.addActionListener((ActionEvent ae) -> {
-            Historial_Orden ui_his_ord = new Historial_Orden();
-            contenedor.add(ui_his_ord);
-        });
-
-        menuBarPrincipal.add(menuCompras);
-        menuBarPrincipal.add(menuAlmacen);
 
         this.setJMenuBar(menuBarPrincipal);
+
+        ArrayList<Aplicacion> modulos;
+        modulos = arrApp.stream().collect(collectingAndThen(toCollection(() -> new TreeSet<>(comparingInt(Aplicacion::getMODULO_ID))),
+                ArrayList::new));
+
+        for (Aplicacion modulo : modulos) {
+            JMenu mn = new JMenu(modulo.getMODULO().getDESCRIPCION());
+            mn.setFont(new Font("Century Gothic", Font.BOLD, 14));
+            arrApp.forEach((app) -> {
+                if (app.getMODULO_ID() == modulo.getMODULO_ID()) {
+                    JMenuItem mni = new JMenuItem(app.getDESCRIPCION());
+                    mni.setFont(new Font("Century Gothic", Font.BOLD, 14));
+                    mni.addActionListener((ActionEvent ae) -> {
+                        JInternalFrame iFrame;
+                        try {                            
+                            iFrame = (JInternalFrame) Class.forName(app.getCLASE()).newInstance();
+                            Principal.contenedor.add(iFrame);
+                            iFrame.moveToFront();
+                        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException ex) {
+                            Logger.getLogger(Principal.class.getName()).log(Level.SEVERE, null, ex);
+                        }
+                    });
+                    mn.add(mni);
+                }
+            });
+            menuBarPrincipal.add(mn);
+        }
 
         getContentPane().add(contenedor, BorderLayout.CENTER);
     }

@@ -8,9 +8,18 @@ public class Proveedor {
     private String TELEFONO;
     private String EMAIL;
     private String RUC;
+    private int DISTRITO_ID;
     private Distrito DISTRITO;
+    private int DIAS_PAGO;
+    private String CONTACTO;
+    private String CTA_BCP;
 
     public Proveedor() {
+    }
+
+    public Proveedor(int ID, String RAZON_SOCIAL) {
+        this.ID = ID;
+        this.RAZON_SOCIAL = RAZON_SOCIAL;
     }
 
     public int getID() {
@@ -41,6 +50,22 @@ public class Proveedor {
         return DISTRITO;
     }
 
+    public int getDIAS_PAGO() {
+        return DIAS_PAGO;
+    }
+
+    public String getCONTACTO() {
+        return CONTACTO;
+    }
+
+    public String getCTA_BCP() {
+        return CTA_BCP;
+    }
+
+    public int getDISTRITO_ID() {
+        return DISTRITO_ID;
+    }
+
     public void setID(int ID) {
         this.ID = ID;
     }
@@ -67,6 +92,22 @@ public class Proveedor {
 
     public void setDISTRITO(Distrito DISTRITO) {
         this.DISTRITO = DISTRITO;
+    }
+
+    public void setDIAS_PAGO(int DIAS_PAGO) {
+        this.DIAS_PAGO = DIAS_PAGO;
+    }
+
+    public void setCONTACTO(String CONTACTO) {
+        this.CONTACTO = CONTACTO;
+    }
+
+    public void setCTA_BCP(String CTA_BCP) {
+        this.CTA_BCP = CTA_BCP;
+    }
+
+    public void setDISTRITO_ID(int DISTRITO_ID) {
+        this.DISTRITO_ID = DISTRITO_ID;
     }
 
     @Override

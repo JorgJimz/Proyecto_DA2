@@ -18,7 +18,7 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -32,19 +32,26 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
-import javax.swing.event.TableModelEvent;
-import javax.swing.event.TableModelListener;
 import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableModel;
+import net.sf.jasperreports.engine.JasperFillManager;
+import net.sf.jasperreports.engine.JasperPrint;
+import net.sf.jasperreports.engine.JasperReport;
+import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
+import net.sf.jasperreports.engine.util.JRLoader;
+import net.sf.jasperreports.view.JasperViewer;
+import org.jdesktop.swingx.JXDatePicker;
 
 import org.jdesktop.swingx.JXSearchField;
 import org.jdesktop.swingx.autocomplete.AutoCompleteDecorator;
 
 public class Procesar_Orden extends JInternalFrame {
 
+    private JInternalFrame container;
     private JTextField txtBuscador;
     private JTextField srcBuscador;
     private JComboBox cboProveedor;
+    private JXDatePicker dpFechaEntrega;
+    private JLabel jLabel8;
     private JTable tbOrdenes;
     private JLabel jLabel7;
     private JScrollPane spOrdenes;
@@ -63,6 +70,8 @@ public class Procesar_Orden extends JInternalFrame {
     private JScrollPane scpPedidos;
     private JLabel jLabel1;
     private JTable tbDetalle;
+    private Orden oOrden;
+    SimpleDateFormat formatoFecha = new SimpleDateFormat("yyyy-MM-dd");
 
     PedidoController controller = new PedidoController();
 
@@ -89,6 +98,8 @@ public class Procesar_Orden extends JInternalFrame {
         this.setClosable(true);
         this.setTitle(".:: PROCESAR ORDEN ::.");
         this.setSize(new java.awt.Dimension(1360, 650));
+        this.setPreferredSize(new java.awt.Dimension(1360, 677));
+        this.setBounds(0, 0, 1360, 677);
 
         srcBuscador = new JXSearchField();
         getContentPane().add(srcBuscador);
@@ -96,7 +107,9 @@ public class Procesar_Orden extends JInternalFrame {
         srcBuscador.addKeyListener(new KeyAdapter() {
             @Override
             public void keyReleased(KeyEvent ke) {
-                //
+                if (ke.getKeyCode() == KeyEvent.VK_ENTER) {
+                    ListarOrdenes();
+                }
             }
         });
 
@@ -133,38 +146,46 @@ public class Procesar_Orden extends JInternalFrame {
         jLabel3 = new JLabel();
         getContentPane().add(jLabel3);
         jLabel3.setText("OBSERVACION");
-        jLabel3.setBounds(683, 395, 97, 16);
+        jLabel3.setBounds(683, 439, 97, 16);
         jLabel3.setFont(new java.awt.Font("Century Gothic", 1, 12));
 
         spObs = new JScrollPane();
         getContentPane().add(spObs);
-        spObs.setBounds(780, 395, 544, 110);
+        spObs.setBounds(780, 437, 546, 112);
 
         txtObs = new JTextArea();
+        txtObs.setFont(new Font("Century Gothic", Font.BOLD, 14));
         spObs.setViewportView(txtObs);
 
         btnProcesar = new MyCustomButton("img/grabar.png", "GRABAR", false);
+        btnProcesar.setEnabled(false);
         getContentPane().add(btnProcesar);
-        btnProcesar.setBounds(1180, 515, 70, 70);
+        btnProcesar.setBounds(1179, 561, 70, 70);
         btnProcesar.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                Orden o = new Orden();
-                o.setID(Integer.parseInt(lblOrden.getText()));
-                Proveedor p = new Proveedor();
-                p.setID(((Proveedor) cboProveedor.getSelectedItem()).getID());
-                o.setPROVEEDOR(p);
-                o.setOBS(txtObs.getText());
-                o.setFACTURA("");
-                o.setESTADO(new Estado(Estado.PROCESADA));
-                controller.ProcesarOrden(o);
-                Cerrar();
+                if (Util.Validar(container)) {
+                    Orden o = new Orden();
+                    o.setFECHA_ENTREGA(formatoFecha.format(dpFechaEntrega.getDate()));
+                    o.setID(Integer.parseInt(lblOrden.getText()));
+                    o.setPROVEEDOR((Proveedor) cboProveedor.getSelectedItem());
+                    o.setOBS(txtObs.getText());
+                    o.setFACTURA("");
+                    o.setESTADO(new Estado(Estado.PROCESADA));
+                    controller.ProcesarOrden(o);
+                    oOrden = controller.ObtenerOrden(String.valueOf(o.getID()));
+                    ImprimirOrden();
+                    Cerrar();
+                } else {
+                    Util.Mensaje("Faltan datos, complete el formulario, por favor.", "Error", JOptionPane.WARNING_MESSAGE);
+                }
             }
         });
 
         btnAnular = new MyCustomButton("img/cerrar.png", "ANULAR", false);
+        btnAnular.setEnabled(false);
         getContentPane().add(btnAnular);
-        btnAnular.setBounds(1255, 515, 70, 70);
+        btnAnular.setBounds(1254, 561, 70, 70);
         btnAnular.addActionListener((ActionEvent ae) -> {
             int option = JOptionPane.showConfirmDialog(null, "<html><h4><b>¿Seguro de anular la orden?</b></h4></html>", "Mensaje de Alerta",
                     JOptionPane.YES_NO_OPTION);
@@ -234,6 +255,16 @@ public class Procesar_Orden extends JInternalFrame {
         jLabel7.setFont(new Font("Century Gothic", Font.BOLD, 18));
         jLabel7.setForeground(Color.BLACK);
 
+        jLabel8 = new JLabel();
+        getContentPane().add(jLabel8);
+        jLabel8.setText("F.ENTREGA");
+        jLabel8.setBounds(683, 398, 97, 16);
+        jLabel8.setFont(new java.awt.Font("Century Gothic", 1, 12));
+
+        dpFechaEntrega = new JXDatePicker();
+        getContentPane().add(dpFechaEntrega);
+        dpFechaEntrega.setBounds(780, 393, 543, 28);
+
         ListarOrdenes();
         Action detail = new AbstractAction() {
             @Override
@@ -243,6 +274,8 @@ public class Procesar_Orden extends JInternalFrame {
         };
         ButtonColumn buttonColumnAdd = new ButtonColumn(tbOrdenes, detail, 4);
         buttonColumnAdd.setMnemonic(KeyEvent.VK_D);
+
+        container = this;
     }
 
     public void VerDetalle() {
@@ -253,6 +286,8 @@ public class Procesar_Orden extends JInternalFrame {
             lblFecha.setText(o.getFECHA());
             lblStatus.Colorear(o.getESTADO().getDESCRIPCION());
             ListarDetalle(o.getDETALLE());
+            btnProcesar.setEnabled(true);
+            btnAnular.setEnabled(true);
         } else {
             Util.Mensaje("No hay información para mostrar.", "Orden no encontrada", JOptionPane.WARNING_MESSAGE);
         }
@@ -285,6 +320,22 @@ public class Procesar_Orden extends JInternalFrame {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public void ImprimirOrden() {
+        ArrayList<Orden> arrOrden = new ArrayList<Orden>();
+        arrOrden.add(oOrden);
+        try {
+            JasperReport reporte = (JasperReport) JRLoader.loadObjectFromFile("rep/Orden_Compra.jasper");
+            JasperPrint jasperPrint = JasperFillManager.fillReport(reporte, null,
+                    new JRBeanCollectionDataSource(arrOrden));
+            JasperViewer viewer = new JasperViewer(jasperPrint, false);
+            viewer.show();
+            viewer.toFront();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        dispose();
     }
 
 }

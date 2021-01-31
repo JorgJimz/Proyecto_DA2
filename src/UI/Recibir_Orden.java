@@ -23,6 +23,7 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -61,6 +62,8 @@ public class Recibir_Orden extends JInternalFrame {
     private JScrollPane scpPedidos;
     private JLabel jLabel1;
     private JTable tbDetalle;
+    private JInternalFrame container;
+    SimpleDateFormat formatoFecha = new SimpleDateFormat("yyyy-MM-dd");
 
     PedidoController controller = new PedidoController();
 
@@ -71,7 +74,7 @@ public class Recibir_Orden extends JInternalFrame {
         }
     };
 
-    DefaultTableModel modeloOrden = new DefaultTableModel(null, new String[]{"ID", "FECHA", "USUARIO", "ID_PRV", "ESTADO", "PROVEEDOR", ""}) {
+    DefaultTableModel modeloOrden = new DefaultTableModel(null, new String[]{"ID", "ENTREGA ESTIMADA", "USUARIO", "ID_PRV", "ESTADO", "PROVEEDOR", ""}) {
         @Override
         public boolean isCellEditable(int rowIndex, int colIndex) {
             return colIndex == 6;
@@ -151,6 +154,7 @@ public class Recibir_Orden extends JInternalFrame {
         spObs.setBounds(780, 395, 544, 110);
 
         txtObs = new JTextArea();
+        txtObs.setFont(new Font("Century Gothic", Font.BOLD, 14));
         spObs.setViewportView(txtObs);
 
         btnProcesar = new MyCustomButton("img/grabar.png", "GRABAR", false);
@@ -158,17 +162,16 @@ public class Recibir_Orden extends JInternalFrame {
         btnProcesar.setEnabled(false);
         btnProcesar.setBounds(1250, 525, 70, 70);
         btnProcesar.addActionListener((ActionEvent ae) -> {
-            Integer idEstado = 0;
-            if (ProcesarStock(idEstado)) {
-                Orden o = new Orden();
+            Orden o = new Orden();
+            if (ProcesarStock(o)) {
                 o.setID(Integer.parseInt(lblOrden.getText()));
                 o.setFACTURA(txtFacturaAsociada.getText());
                 o.setOBS(txtObs.getText());
                 Proveedor p = new Proveedor();
                 int fila = tbOrdenes.getSelectedRow();
                 p.setID(Integer.parseInt(modeloOrden.getValueAt(fila, 3).toString()));
+                o.setFECHA_ENTREGA(modeloOrden.getValueAt(fila, 1).toString());
                 o.setPROVEEDOR(p);
-                o.setESTADO(new Estado(idEstado));
                 controller.ProcesarOrden(o);
                 Cerrar();
             }
@@ -235,6 +238,8 @@ public class Recibir_Orden extends JInternalFrame {
         };
         ButtonColumn buttonColumnAdd = new ButtonColumn(tbOrdenes, detail, 5);
         buttonColumnAdd.setMnemonic(KeyEvent.VK_D);
+
+        container = this;
     }
 
     public void VerDetalle() {
@@ -257,7 +262,7 @@ public class Recibir_Orden extends JInternalFrame {
             ArrayList<Orden> arr = controller.ObtenerOrdenes(Estado.PROCESADA, srcBuscador.getText());
             modeloOrden.setRowCount(0);
             arr.forEach((x) -> {
-                modeloOrden.addRow(new Object[]{x.getID(), x.getFECHA(), x.getUSUARIO(), x.getPROVEEDOR().getID(), x.getESTADO().getDESCRIPCION(), x.getPROVEEDOR().getRAZON_SOCIAL(), new ImageIcon("img/detail.png")});
+                modeloOrden.addRow(new Object[]{x.getID(), x.getFECHA_ENTREGA(), x.getUSUARIO(), x.getPROVEEDOR().getID(), x.getESTADO().getDESCRIPCION(), x.getPROVEEDOR().getRAZON_SOCIAL(), new ImageIcon("img/detail.png")});
             });
             tbOrdenes.setModel(modeloOrden);
         } catch (Exception e) {
@@ -281,9 +286,9 @@ public class Recibir_Orden extends JInternalFrame {
         }
     }
 
-    public boolean ProcesarStock(Integer status) {
+    public boolean ProcesarStock(Orden o) {
         boolean flag = false;
-        status = Estado.ENTREGADA;
+        o.setESTADO(new Estado(Estado.ENTREGADA));        
         int totalOk = 0;
         int totalKo = 0;
         ArrayList<Kardex> arr = new ArrayList<Kardex>();
@@ -321,7 +326,7 @@ public class Recibir_Orden extends JInternalFrame {
                 );
                 arr.add(k);
                 totalKo++;
-                status = Estado.OBSERVADA;
+                o.setESTADO(new Estado(Estado.OBSERVADA));
             }
         }
         controller.GenerarKardex(arr);
