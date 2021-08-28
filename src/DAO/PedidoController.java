@@ -4,6 +4,7 @@ import INTERFACE.IPedido;
 import MODEL.Detalle_Orden;
 import MODEL.Distrito;
 import MODEL.Estado;
+import MODEL.Historial;
 import MODEL.Kardex;
 import MODEL.Orden;
 import MODEL.Producto;
@@ -17,23 +18,31 @@ import java.util.ArrayList;
 import javax.swing.JOptionPane;
 
 public class PedidoController implements IPedido {
-
+    
     @Override
     public Orden ObtenerOrden(String id) {
         Orden o = null;
         ArrayList<Detalle_Orden> l = new ArrayList<Detalle_Orden>();
         try {
             dbBean cnn = new dbBean();
-            ResultSet rs = cnn.execParamSQL("SELECT O.*, COALESCE(O.FACTURA,'NO REGISTRADA'), COALESCE(P.RAZON_SOCIAL, 'SIN PROVEEDOR ASIGNADO'), E.ID ID_ESTADO, E.DESCRIPCION DESC_ESTADO FROM ORDEN O INNER JOIN ESTADO E ON O.ESTADO_ID = E.ID LEFT JOIN PROVEEDOR P ON O.PROVEEDOR_ID = P.ID WHERE O.ID = ?", new String[]{id});
+            ResultSet rs = cnn.execParamSQL("SELECT O.*, COALESCE(O.FACTURA,'NO REGISTRADA'), P.*, COALESCE(P.RAZON_SOCIAL, 'SIN PROVEEDOR ASIGNADO') AS RAZON_SOCIAL, E.ID ID_ESTADO, E.DESCRIPCION DESC_ESTADO, H.USUARIO FROM ORDEN O INNER JOIN ESTADO E ON O.ESTADO_ID = E.ID LEFT JOIN PROVEEDOR P ON O.PROVEEDOR_ID = P.ID LEFT JOIN HISTORIAL H ON O.ID = H.ORDEN_ID AND O.ESTADO_ID = H.ESTADO_ID WHERE O.ID = ?", new String[]{id});
             while (rs.next()) {
                 o = new Orden();
                 o.setID(rs.getInt("ID"));
+                o.setUSUARIO(rs.getString("USUARIO"));
                 o.setFECHA(rs.getString("FECHA"));
+                o.setFECHA_ENTREGA(rs.getString("FECHA_ENTREGA"));
                 o.setESTADO(new Estado(rs.getInt("ID_ESTADO"), rs.getString("DESC_ESTADO")));
                 o.setFACTURA(rs.getString("FACTURA"));
                 Proveedor p = new Proveedor();
                 p.setID(rs.getInt("PROVEEDOR_ID"));
                 p.setRAZON_SOCIAL(rs.getString("RAZON_SOCIAL"));
+                p.setRUC(rs.getString("RUC"));
+                p.setDIRECCION(rs.getString("DIRECCION"));
+                p.setTELEFONO(rs.getString("TELEFONO"));
+                p.setDIAS_PAGO(rs.getInt("DIAS_PAGO"));
+                p.setCTA_BCP(rs.getString("CTA_BCP"));
+                p.setCONTACTO(rs.getString("CONTACTO"));
                 o.setPROVEEDOR(p);
             }
             if (o != null) {
@@ -59,13 +68,14 @@ public class PedidoController implements IPedido {
         }
         return o;
     }
-
+    
     @Override
-    public void GenerarPedido(ArrayList<Detalle_Orden> arrDetalle, String obs) {
+    public Orden GenerarPedido(ArrayList<Detalle_Orden> arrDetalle, String obs) {
+        int r = 0;
         try {
             dbBean cnn = new dbBean();
             int r2 = 0;
-            int r = cnn.insertSQL("INSERT INTO ORDEN VALUES (GETDATE(), 1, NULL, NULL)", null);
+            r = cnn.insertSQL("INSERT INTO ORDEN VALUES (GETDATE(), 1, NULL, NULL, NULL)", null);
             if (r > 0) {
                 for (Detalle_Orden item : arrDetalle) {
                     r2 = cnn.insertSQL("INSERT INTO DETALLE_ORDEN VALUES (?,?,?)", new Object[]{r, item.getPRODUCTO_ID(), item.getCANTIDAD()});
@@ -78,14 +88,17 @@ public class PedidoController implements IPedido {
         } catch (SQLException e) {
             Util.Mensaje(e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
+        
+        return ObtenerOrden(String.valueOf(r));
     }
-
+    
     @Override
     public ArrayList<Proveedor> ObtenerProveedores() {
         ArrayList<Proveedor> l = new ArrayList<Proveedor>();
         try {
             dbBean cnn = new dbBean();
             ResultSet rs = cnn.execSQL("SELECT P.*, D.ID ID_DIST, D.NOMBRE NOM_DIST FROM PROVEEDOR P INNER JOIN DISTRITO D ON P.DISTRITO_ID = D.ID");
+            l.add(new Proveedor(0, "[Seleccione]"));
             while (rs.next()) {
                 Proveedor p = new Proveedor();
                 p.setID(rs.getInt("ID"));
@@ -97,13 +110,13 @@ public class PedidoController implements IPedido {
                 p.setDISTRITO(new Distrito(rs.getInt("ID_DIST"), rs.getString("NOM_DIST")));
                 l.add(p);
             }
-
+            
         } catch (SQLException e) {
             Util.Mensaje(e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
         return l;
     }
-
+    
     @Override
     public ArrayList<Producto> CargarProductos(String criteria, boolean filtro) {
         ArrayList<Producto> lp = new ArrayList<Producto>();
@@ -131,7 +144,7 @@ public class PedidoController implements IPedido {
         }
         return lp;
     }
-
+    
     @Override
     public void GenerarHistorial(int o, int e, String usr, String obs) {
         try {
@@ -141,25 +154,25 @@ public class PedidoController implements IPedido {
             Util.Mensaje(ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
-
+    
     @Override
     public void ProcesarOrden(Orden o) {
         try {
             dbBean cnn = new dbBean();
-            int r = cnn.insertSQL("UPDATE ORDEN SET PROVEEDOR_ID = ?, ESTADO_ID = ?, FACTURA = ? WHERE ID = ?", new Object[]{o.getPROVEEDOR().getID(), o.getESTADO().getID(), o.getFACTURA(), o.getID()});
+            int r = cnn.insertSQL("UPDATE ORDEN SET PROVEEDOR_ID = ?, ESTADO_ID = ?, FACTURA = ?, FECHA_ENTREGA = ? WHERE ID = ?", new Object[]{o.getPROVEEDOR().getID(), o.getESTADO().getID(), o.getFACTURA(), o.getFECHA_ENTREGA(), o.getID()});
             GenerarHistorial(o.getID(), o.getESTADO().getID(), Principal.USUARIO.getCODIGO(), o.getOBS());
             Util.Mensaje("¡Orden " + String.format("%05d", o.getID()) + " procesada!", "Exito", JOptionPane.INFORMATION_MESSAGE);
         } catch (SQLException ex) {
             Util.Mensaje(ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
-
+    
     @Override
     public ArrayList<Orden> ObtenerOrdenes(int estado, String id) {
         ArrayList<Orden> l = new ArrayList<Orden>();
         try {
             dbBean cnn = new dbBean();
-            ResultSet rs = cnn.execParamSQL("SELECT O.ID, O.FECHA, O.PROVEEDOR_ID, P.RAZON_SOCIAL, E.DESCRIPCION, H.USUARIO FROM ORDEN O INNER JOIN ESTADO E ON O.ESTADO_ID = E.ID INNER JOIN HISTORIAL H ON H.ESTADO_ID = E.ID AND H.ORDEN_ID = O.ID LEFT JOIN PROVEEDOR P ON O.PROVEEDOR_ID = P.ID WHERE E.ID = ? AND (? = '' OR O.ID = ?)", new String[]{String.format("%d", estado), id, id});
+            ResultSet rs = cnn.execParamSQL("SELECT O.ID, O.FECHA, O.FECHA_ENTREGA, O.PROVEEDOR_ID, P.RAZON_SOCIAL, E.DESCRIPCION, H.USUARIO FROM ORDEN O INNER JOIN ESTADO E ON O.ESTADO_ID = E.ID INNER JOIN HISTORIAL H ON H.ESTADO_ID = E.ID AND H.ORDEN_ID = O.ID LEFT JOIN PROVEEDOR P ON O.PROVEEDOR_ID = P.ID WHERE E.ID = ? AND (? = '' OR O.ID = ?)", new String[]{String.format("%d", estado), id, id});
             while (rs.next()) {
                 Orden p = new Orden();
                 p.setID(rs.getInt("ID"));
@@ -171,16 +184,17 @@ public class PedidoController implements IPedido {
                 v.setRAZON_SOCIAL(rs.getString("RAZON_SOCIAL"));
                 p.setPROVEEDOR(v);
                 p.setFECHA(rs.getString("FECHA"));
+                p.setFECHA_ENTREGA(rs.getString("FECHA_ENTREGA"));
                 p.setUSUARIO(rs.getString("USUARIO"));
                 l.add(p);
             }
-
+            
         } catch (SQLException e) {
             Util.Mensaje(e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
         return l;
     }
-
+    
     @Override
     public void GenerarKardex(ArrayList<Kardex> arr) {
         try {
@@ -195,7 +209,8 @@ public class PedidoController implements IPedido {
                     k.getNUEVO_STOCK(),
                     k.getOBSERVACION(),
                     k.getORDEN_ID()
-                });
+                });                
+                cnn.insertSQL("UPDATE PRODUCTO SET STOCK_ACTUAL = STOCK_ACTUAL + ? WHERE ID = ?", new Object[]{k.getCANTIDAD_RECIBIDA(), k.getPRODUCTO_ID()});
             }
             Util.Mensaje("¡Kardex actualizado!", "Exito", JOptionPane.INFORMATION_MESSAGE);
         } catch (SQLException e) {
@@ -208,15 +223,37 @@ public class PedidoController implements IPedido {
         boolean flag = false;
         try {
             dbBean cnn = new dbBean();
-            ResultSet rs = cnn.execParamSQL("SELECT * FROM ORDEN WHERE PROVEEDOR_ID = ? AND FACTURA = ?", new String[]{ pId, factura });
+            ResultSet rs = cnn.execParamSQL("SELECT * FROM ORDEN WHERE PROVEEDOR_ID = ? AND FACTURA = ?", new String[]{pId, factura});
             while (rs.next()) {
                 flag = true;
             }
-
+            
         } catch (SQLException e) {
             Util.Mensaje(e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
         return flag;
     }
-
+    
+    @Override
+    public ArrayList<Historial> ObtenerHistorial(int id) {
+        ArrayList<Historial> lh = new ArrayList<Historial>();
+        try {
+            dbBean cnn = new dbBean();
+            ResultSet rs = cnn.execParamSQL("SELECT H.*, E.DESCRIPCION ESTADO_DESC FROM HISTORIAL H INNER JOIN ESTADO E on H.ESTADO_ID = E.ID WHERE ORDEN_ID = ? ORDER BY ID ASC", new String[]{String.valueOf(id)});
+            while (rs.next()) {
+                Historial h = new Historial();
+                h.setID(rs.getInt("ID"));
+                h.setFECHA(rs.getString("FECHA"));
+                h.setUSUARIO(rs.getString("USUARIO"));
+                h.setORDEN_ID(rs.getInt("ORDEN_ID"));
+                h.setOBSERVACION(rs.getString("OBSERVACION"));
+                h.setESTADO(new Estado(rs.getInt("ESTADO_ID"), rs.getString("ESTADO_DESC")));
+                lh.add(h);
+            }
+        } catch (SQLException e) {
+            Util.Mensaje(e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+        return lh;
+    }
+    
 }

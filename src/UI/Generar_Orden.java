@@ -1,10 +1,12 @@
 package UI;
 
 import COMMON.ButtonColumn;
+import COMMON.EmailSenderService;
 import COMMON.MyCustomButton;
 import COMMON.ProductoRenderer;
 import DAO.PedidoController;
 import MODEL.Detalle_Orden;
+import MODEL.Orden;
 import MODEL.Producto;
 import UTIL.Util;
 import java.awt.Color;
@@ -141,7 +143,8 @@ public class Generar_Orden extends JInternalFrame {
         btGenerar.setEnabled(false);
         btGenerar.setBounds(1225, 396, 70, 70);
         btGenerar.addActionListener((ActionEvent ae) -> {
-            controller.GenerarPedido(arrDetalle, txtObs.getText());
+            Orden o = controller.GenerarPedido(arrDetalle, txtObs.getText());
+            new EmailSenderService().sendEmail(o.getID());
             Cerrar();
         });
 
@@ -164,6 +167,7 @@ public class Generar_Orden extends JInternalFrame {
         spObs.setBounds(667, 396, 546, 124);
 
         txtObs = new JTextArea();
+        txtObs.setFont(new Font("Century Gothic", Font.BOLD, 14));
         spObs.setViewportView(txtObs);
 
         ListarProductos();
@@ -228,7 +232,6 @@ public class Generar_Orden extends JInternalFrame {
         } else {
             Util.Mensaje("Este producto ya se encuentra en el detalle del pedido.", "Duplicado", JOptionPane.WARNING_MESSAGE);
         }
-
     }
 
     public void RetirarDetalle() {
@@ -261,4 +264,5 @@ public class Generar_Orden extends JInternalFrame {
             e.printStackTrace();
         }
     }
+
 }
